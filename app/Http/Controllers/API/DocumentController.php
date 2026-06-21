@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Document;
+use App\Models\DocumentArchiveLog;
 use App\Models\DocumentCategory;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
@@ -118,6 +119,7 @@ class DocumentController extends BaseController
                     'rejected',
                     'infected',
                     'blocked',
+                    'archived',
                 ])->orWhere(function ($ownerQuery) use ($user) {
                     $ownerQuery
                         ->where('uploaded_by', $user->id)
@@ -126,9 +128,23 @@ class DocumentController extends BaseController
                             'rejected',
                             'infected',
                             'blocked',
+                            'archived',
                         ]);
                 });
             });
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Archive visibility
+        |--------------------------------------------------------------------------
+        | Archived documents are kept in storage and database for audit, but
+        | they should disappear from the normal All Documents list. They are
+        | visible through /api/document-archives/documents, or explicitly with
+        | /api/documents?status=archived when needed.
+        */
+        if (!$request->filled('status')) {
+            $query->where('status', '!=', 'archived');
         }
 
         /*
@@ -661,11 +677,35 @@ class DocumentController extends BaseController
 
         $metadata['archived_by'] = $user->id;
         $metadata['archived_by_name'] = $user->name;
+        $reason = $request->input('reason', 'Document archived by ' . $user->name . '.');
+        $statusBefore = $document->status;
+
         $metadata['archived_at'] = now()->toDateTimeString();
+        $metadata['archive_reason'] = $reason;
 
         $document->update([
             'status' => 'archived',
+            'archived_by' => $user->id,
+            'archived_at' => now(),
+            'archive_reason' => $reason,
+            'restored_by' => null,
+            'restored_at' => null,
+            'restore_reason' => null,
             'metadata' => $metadata,
+        ]);
+
+        DocumentArchiveLog::create([
+            'document_id' => $document->id,
+            'performed_by' => $user->id,
+            'action' => 'archived',
+            'status_before' => $statusBefore,
+            'status_after' => 'archived',
+            'reason' => $reason,
+            'metadata' => [
+                'document_code' => $document->document_code,
+                'title' => $document->title,
+                'source' => 'documents_destroy_endpoint',
+            ],
         ]);
 
         $document->refresh()->load([
@@ -673,6 +713,8 @@ class DocumentController extends BaseController
             'category:id,name,slug',
             'uploader:id,name,email',
             'approver:id,name,email',
+            'archiver:id,name,email',
+            'archiveRestorer:id,name,email',
         ]);
 
         return $this->sendResponse($document, 'Document archived successfully.');
