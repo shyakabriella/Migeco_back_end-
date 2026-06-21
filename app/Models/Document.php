@@ -23,6 +23,8 @@ class Document extends Model
         'document_category_id',
         'uploaded_by',
         'approved_by',
+        'archived_by',
+        'restored_by',
 
         /*
         |--------------------------------------------------------------------------
@@ -131,6 +133,16 @@ class Document extends Model
 
         /*
         |--------------------------------------------------------------------------
+        | Archive
+        |--------------------------------------------------------------------------
+        */
+        'archived_at',
+        'archive_reason',
+        'restored_at',
+        'restore_reason',
+
+        /*
+        |--------------------------------------------------------------------------
         | Extra Data
         |--------------------------------------------------------------------------
         */
@@ -151,6 +163,8 @@ class Document extends Model
             'document_category_id' => 'integer',
             'uploaded_by' => 'integer',
             'approved_by' => 'integer',
+            'archived_by' => 'integer',
+            'restored_by' => 'integer',
 
             /*
             |--------------------------------------------------------------------------
@@ -211,6 +225,8 @@ class Document extends Model
             'plaintext_extracted_at' => 'datetime',
             'sandbox_tested_at' => 'datetime',
             'ai_analyzed_at' => 'datetime',
+            'archived_at' => 'datetime',
+            'restored_at' => 'datetime',
             'approved_at' => 'datetime',
         ];
     }
@@ -239,6 +255,21 @@ class Document extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function archiver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'archived_by');
+    }
+
+    public function archiveRestorer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'restored_by');
+    }
+
+    public function archiveLogs(): HasMany
+    {
+        return $this->hasMany(DocumentArchiveLog::class);
     }
 
     public function scanLogs(): HasMany
@@ -305,6 +336,11 @@ class Document extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
+    }
+
+    public function scopeArchived($query)
+    {
+        return $query->where('status', 'archived');
     }
 
     public function scopePendingScan($query)
@@ -401,6 +437,11 @@ class Document extends Model
         return $this->status === 'active'
             && $this->scan_status === 'clean'
             && $this->sandbox_status === 'safe';
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->status === 'archived';
     }
 
     public function isInfected(): bool
