@@ -7,6 +7,7 @@ use App\Http\Controllers\API\RegisterController;
 use App\Http\Controllers\API\DocumentCategoryController;
 use App\Http\Controllers\API\ProjectController;
 use App\Http\Controllers\API\DocumentController;
+use App\Http\Controllers\API\DocumentArchiveController;
 use App\Http\Controllers\API\DocumentSecurityController;
 use App\Http\Controllers\API\DocumentAccessController;
 use App\Http\Controllers\API\DocumentEncryptionController;
@@ -103,6 +104,43 @@ Route::middleware('auth:sanctum')->group(function () {
         'documents',
         DocumentController::class
     );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Document Archive Routes
+    |--------------------------------------------------------------------------
+    | Archive is a lifecycle state for clean documents that are no longer active.
+    | It keeps the file and database record for audit, but separates old records
+    | from normal daily document work.
+    */
+    Route::prefix('document-archives')
+        ->controller(DocumentArchiveController::class)
+        ->group(function () {
+            Route::get(
+                'summary',
+                'archiveSummary'
+            );
+
+            Route::get(
+                'documents',
+                'archivedDocuments'
+            );
+
+            Route::post(
+                'documents/{id}/archive',
+                'archiveDocument'
+            );
+
+            Route::post(
+                'documents/{id}/restore',
+                'restoreDocument'
+            );
+
+            Route::get(
+                'logs',
+                'archiveLogs'
+            );
+        });
 
     /*
     |--------------------------------------------------------------------------
