@@ -170,9 +170,37 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Project / Site Routes
+    | Project Management Routes
     |--------------------------------------------------------------------------
+    | A project is the main workspace/container.
+    | Each project can return all related records:
+    | documents, archives, study-area files, samples, laboratory records,
+    | geological records, and security alerts.
+    |
+    | Important:
+    | Summary and records routes must be declared before apiResource.
+    | Otherwise, Laravel may treat "summary" or "records" as a project ID.
     */
+    Route::get(
+        'projects/summary',
+        [ProjectController::class, 'summary']
+    )->name('projects.summary');
+
+    Route::get(
+        'projects/{id}/records',
+        [ProjectController::class, 'records']
+    )->name('projects.records');
+
+    Route::post(
+        'projects/{id}/archive',
+        [ProjectController::class, 'archive']
+    )->name('projects.archive');
+
+    Route::post(
+        'projects/{id}/restore',
+        [ProjectController::class, 'restore']
+    )->name('projects.restore');
+
     Route::apiResource(
         'projects',
         ProjectController::class
