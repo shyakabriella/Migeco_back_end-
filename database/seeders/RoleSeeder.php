@@ -10,13 +10,14 @@ class RoleSeeder extends Seeder
     /**
      * Run the database seeds.
      *
-     * This seeder now keeps only the two required system roles:
+     * This seeder keeps only the required system roles in code:
      * - Admin
-     * - Project Manager
+     * - Geologist
+     * - Viewer
      *
      * Important:
-     * This file seeds/updates these two roles only.
-     * It does not delete old roles automatically, because old users may already
+     * This file seeds/updates these three roles only.
+     * It does not delete old roles automatically because old users may already
      * be linked to them. Deleting linked roles can break existing users.
      */
     public function run(): void
@@ -39,6 +40,7 @@ class RoleSeeder extends Seeder
                     'manage_categories',
                     'manage_metadata_schemas',
                     'manage_geological_records',
+                    'view_geological_records',
 
                     'upload_documents',
                     'view_documents',
@@ -65,29 +67,50 @@ class RoleSeeder extends Seeder
                 ],
             ],
             [
-                'name' => 'Project Manager',
-                'slug' => 'project_manager',
-                'description' => 'Can supervise projects, upload and manage project documents, manage geological records for projects, approve document workflows, monitor document progress, use AI support, and view project reports.',
+                'name' => 'Geologist',
+                'slug' => 'geologist',
+                'description' => 'Can work with geological projects, study areas, samples, maps, geological records, and technical documents. Can upload, view, download, and update geological documents but cannot manage users, roles, or system security.',
                 'permissions' => [
-                    'manage_projects',
-                    'create_projects',
                     'view_projects',
+                    'create_projects',
                     'edit_projects',
+
+                    'view_study_areas',
+                    'create_study_areas',
+                    'edit_study_areas',
+
+                    'view_samples',
+                    'create_samples',
+                    'edit_samples',
+
+                    'view_geological_records',
+                    'manage_geological_records',
 
                     'upload_documents',
                     'view_documents',
                     'download_documents',
                     'edit_documents',
-                    'approve_documents',
-                    'assign_document_review',
-                    'request_document_approval',
-
-                    'manage_geological_records',
-                    'view_geological_records',
+                    'categorize_documents',
+                    'manage_document_metadata',
 
                     'use_ai',
                     'view_reports',
-                    'view_project_audit_logs',
+                ],
+            ],
+            [
+                'name' => 'Viewer',
+                'slug' => 'viewer',
+                'description' => 'Read-only user. Can view projects, study areas, samples, documents, reports, and geological records but cannot create, edit, delete, approve, or manage system settings.',
+                'permissions' => [
+                    'view_projects',
+                    'view_study_areas',
+                    'view_samples',
+                    'view_geological_records',
+
+                    'view_documents',
+                    'download_documents',
+
+                    'view_reports',
                 ],
             ],
         ];

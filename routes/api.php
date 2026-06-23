@@ -16,6 +16,7 @@ use App\Http\Controllers\API\DocumentSandboxController;
 use App\Http\Controllers\API\DocumentAiController;
 use App\Http\Controllers\API\GeologicalRecordController;
 use App\Http\Controllers\API\MetadataSchemaController;
+use App\Http\Controllers\API\RoleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,8 +44,9 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | This keeps the existing endpoint used by the frontend.
     */
-    Route::get('user', function (Request $request) {
-        return $request->user()->load('role');
+    Route::controller(RegisterController::class)->group(function () {
+        Route::get('user', 'me');
+        Route::get('me', 'me');
     });
 
     /*
@@ -56,6 +58,53 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('register', 'register');
         Route::post('logout', 'logout');
         Route::get('profile', 'profile');
+
+        Route::get('users', 'users');
+        Route::post('users', 'register');
+        Route::get('users/{id}', 'showUser');
+        Route::put('users/{id}', 'updateUser');
+        Route::patch('users/{id}', 'updateUser');
+        Route::delete('users/{id}', 'deleteUser');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Role Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::apiResource('roles', RoleController::class);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Frontend Compatibility Routes
+    |--------------------------------------------------------------------------
+    | Some frontend pages call /admin/users, /admin/roles, and
+    | /user-management/users. These aliases point to the same controllers.
+    */
+    Route::prefix('admin')->group(function () {
+        Route::controller(RegisterController::class)->group(function () {
+            Route::get('users', 'users');
+            Route::post('users', 'register');
+            Route::get('users/{id}', 'showUser');
+            Route::put('users/{id}', 'updateUser');
+            Route::patch('users/{id}', 'updateUser');
+            Route::delete('users/{id}', 'deleteUser');
+        });
+
+        Route::apiResource('roles', RoleController::class);
+    });
+
+    Route::prefix('user-management')->group(function () {
+        Route::controller(RegisterController::class)->group(function () {
+            Route::get('users', 'users');
+            Route::post('users', 'register');
+            Route::get('users/{id}', 'showUser');
+            Route::put('users/{id}', 'updateUser');
+            Route::patch('users/{id}', 'updateUser');
+            Route::delete('users/{id}', 'deleteUser');
+        });
+
+        Route::get('roles', [RoleController::class, 'index']);
     });
 
     /*
