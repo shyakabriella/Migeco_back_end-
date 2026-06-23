@@ -18,6 +18,7 @@ use App\Http\Controllers\API\MetadataSchemaController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\SettingsController;
 use App\Http\Controllers\API\StudyAreaController;
+use App\Http\Controllers\API\SampleLaboratoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -237,6 +238,90 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource(
         'study-areas',
         StudyAreaController::class
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sample Management / Laboratory Results Routes
+    |--------------------------------------------------------------------------
+    | Supports supervisor requirements:
+    | - Sample code
+    | - Collection date
+    | - Collector
+    | - Location
+    | - Linked project
+    | - Sample information
+    | - Test results
+    | - Result documents
+    |
+    | Important:
+    | Summary, restore, update-with-files, result, and document routes must be
+    | declared before apiResource. Otherwise, Laravel may treat route keywords
+    | as sample IDs.
+    */
+    Route::get(
+        'samples-laboratory/summary',
+        [SampleLaboratoryController::class, 'summary']
+    )->name('samples-laboratory.summary');
+
+    Route::post(
+        'samples-laboratory/{id}/restore',
+        [SampleLaboratoryController::class, 'restore']
+    )->name('samples-laboratory.restore');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Update sample with result documents
+    |--------------------------------------------------------------------------
+    | Use this from frontend when uploading files:
+    | POST /api/samples-laboratory/{id}
+    | _method=PUT
+    | result_documents[]=file.pdf
+    */
+    Route::post(
+        'samples-laboratory/{id}',
+        [SampleLaboratoryController::class, 'update']
+    )->name('samples-laboratory.update-with-files');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Laboratory Result Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::post(
+        'samples-laboratory/{sampleId}/laboratory-results',
+        [SampleLaboratoryController::class, 'storeLaboratoryResult']
+    )->name('samples-laboratory.results.store');
+
+    Route::put(
+        'samples-laboratory/{sampleId}/laboratory-results/{resultId}',
+        [SampleLaboratoryController::class, 'updateLaboratoryResult']
+    )->name('samples-laboratory.results.update');
+
+    Route::patch(
+        'samples-laboratory/{sampleId}/laboratory-results/{resultId}',
+        [SampleLaboratoryController::class, 'updateLaboratoryResult']
+    )->name('samples-laboratory.results.patch');
+
+    Route::post(
+        'samples-laboratory/{sampleId}/laboratory-results/{resultId}',
+        [SampleLaboratoryController::class, 'updateLaboratoryResult']
+    )->name('samples-laboratory.results.update-with-files');
+
+    Route::delete(
+        'samples-laboratory/{sampleId}/laboratory-results/{resultId}',
+        [SampleLaboratoryController::class, 'deleteLaboratoryResult']
+    )->name('samples-laboratory.results.delete');
+
+    Route::delete(
+        'samples-laboratory/{sampleId}/laboratory-results/{resultId}/documents/{documentId}',
+        [SampleLaboratoryController::class, 'deleteResultDocument']
+    )->name('samples-laboratory.results.documents.delete');
+
+    Route::apiResource(
+        'samples-laboratory',
+        SampleLaboratoryController::class
     );
 
     /*
