@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your MIGECO DMS account is ready</title>
+    <title>Your MIGECO DMS account login details</title>
 </head>
 <body style="margin:0;background:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#0f172a;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7fb;padding:32px 16px;">
@@ -32,8 +32,7 @@
                             </p>
 
                             <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:#475569;">
-                                An administrator has created your MIGECO DMS account using this email address:
-                                <strong style="color:#0f172a;">{{ $user->email }}</strong>.
+                                An administrator has created your MIGECO DMS account. Use the credentials below to sign in locally.
                             </p>
 
                             @if ($createdBy)
@@ -43,26 +42,45 @@
                                 </p>
                             @endif
 
-                            <p style="margin:0 0 22px;font-size:15px;line-height:1.7;color:#475569;">
-                                Please set your password before signing in. For security, do not share this link with anyone.
-                            </p>
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:22px 0;border:1px solid #dbeafe;border-radius:12px;overflow:hidden;">
+                                <tr>
+                                    <td style="width:150px;background:#eff6ff;padding:13px 16px;font-size:13px;font-weight:700;color:#1e3a8a;">
+                                        Login URL
+                                    </td>
+                                    <td style="padding:13px 16px;font-size:13px;color:#0f172a;word-break:break-all;">
+                                        <a href="{{ $loginUrl }}" style="color:#2563eb;text-decoration:none;">{{ $loginUrl }}</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width:150px;background:#eff6ff;padding:13px 16px;font-size:13px;font-weight:700;color:#1e3a8a;border-top:1px solid #dbeafe;">
+                                        Email
+                                    </td>
+                                    <td style="padding:13px 16px;font-size:13px;color:#0f172a;border-top:1px solid #dbeafe;">
+                                        {{ $user->email }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width:150px;background:#eff6ff;padding:13px 16px;font-size:13px;font-weight:700;color:#1e3a8a;border-top:1px solid #dbeafe;">
+                                        Password
+                                    </td>
+                                    <td style="padding:13px 16px;font-size:15px;font-weight:700;color:#0f172a;border-top:1px solid #dbeafe;letter-spacing:0.04em;">
+                                        {{ $temporaryPassword }}
+                                    </td>
+                                </tr>
+                            </table>
 
                             <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 24px;">
                                 <tr>
                                     <td style="border-radius:10px;background:#2563eb;">
-                                        <a href="{{ $resetUrl }}" style="display:inline-block;padding:13px 20px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">
-                                            Set My Password
+                                        <a href="{{ $loginUrl }}" style="display:inline-block;padding:13px 20px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">
+                                            Open Login Page
                                         </a>
                                     </td>
                                 </tr>
                             </table>
 
-                            <p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#64748b;">
-                                If the button does not work, copy and paste this link into your browser:
-                            </p>
-
-                            <p style="margin:0;padding:12px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;font-size:12px;line-height:1.6;color:#334155;word-break:break-all;">
-                                {{ $resetUrl }}
+                            <p style="margin:0;padding:12px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;font-size:12px;line-height:1.6;color:#9a3412;">
+                                Local testing note: this email includes a temporary password for convenience. For production, use a password reset link instead of sending passwords by email.
                             </p>
                         </td>
                     </tr>

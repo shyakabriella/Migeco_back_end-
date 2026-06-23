@@ -9,7 +9,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -122,52 +121,67 @@ class RegisterController extends BaseController
         |--------------------------------------------------------------------------
         | Create User
         |--------------------------------------------------------------------------
-        | Admin does not provide a password. A temporary random password is
-        | stored so the account is valid, then the user receives a password
-        | setup email with a reset token.
+        | Admin does not provide a password. A temporary password is generated
+        | and sent to the user by email. This is intended for local/testing.
         */
+        $temporaryPassword = $this->generateTemporaryPassword();
+
         $user = User::create([
             'role_id' => $request->role_id,
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Str::random(40),
+            'password' => $temporaryPassword,
             'phone' => $request->phone,
             'department' => $request->department,
             'status' => $request->status ?? 'active',
             'created_by' => $authUser->id,
         ]);
 
-        $passwordSetupEmailSent = $this->sendPasswordSetupNotification(
+        $temporaryPasswordEmailSent = $this->sendTemporaryPasswordNotification(
             $user,
-            $authUser
+            $authUser,
+            $temporaryPassword
         );
 
         return $this->sendResponse(
             [
                 'user' => $this->formatUser($user),
-                'password_setup_email_sent' => $passwordSetupEmailSent,
+                'temporary_password_email_sent' => $temporaryPasswordEmailSent,
             ],
-            $passwordSetupEmailSent
-                ? 'User created successfully. Password setup email sent.'
-                : 'User created successfully, but password setup email was not sent.'
+            $temporaryPasswordEmailSent
+                ? 'User created successfully. Temporary password email sent.'
+                : 'User created successfully, but temporary password email was not sent.'
         );
     }
 
     /**
-     * Send password setup email to newly created user.
+     * Generate a readable temporary password for local user onboarding.
      */
-    private function sendPasswordSetupNotification(User $user, User $authUser): bool
+    private function generateTemporaryPassword(): string
+    {
+        return 'Migeco-' . Str::random(8) . '1!';
+    }
+
+    /**
+     * Send temporary password email to newly created user.
+     */
+    private function sendTemporaryPasswordNotification(
+        User $user,
+        User $authUser,
+        string $temporaryPassword
+    ): bool
     {
         try {
-            $token = Password::broker()->createToken($user);
-
             $user->notify(
-                new UserCreatedResetPasswordNotification($token, $authUser)
+                new UserCreatedResetPasswordNotification(
+                    $temporaryPassword,
+                    $authUser
+                )
             );
 
             return true;
         } catch (Throwable $exception) {
-            Log::warning('Failed to send user password setup notification.', [
+            Log::warning('Failed to send user temporary password notification.', [
                 'user_id' => $user->id,
                 'email' => $user->email,
                 'error' => $exception->getMessage(),

@@ -6,14 +6,13 @@ use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\URL;
 
 class UserCreatedResetPasswordNotification extends Notification
 {
     use Queueable;
 
     public function __construct(
-        private readonly string $token,
+        private readonly string $temporaryPassword,
         private readonly ?User $createdBy = null
     ) {
     }
@@ -31,14 +30,13 @@ class UserCreatedResetPasswordNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $resetUrl = $this->resetUrl($notifiable);
-
         return (new MailMessage)
-            ->subject('Your MIGECO DMS account is ready')
+            ->subject('Your MIGECO DMS account login details')
             ->view('emails.users.created-reset-password', [
                 'user' => $notifiable,
                 'createdBy' => $this->createdBy,
-                'resetUrl' => $resetUrl,
+                'temporaryPassword' => $this->temporaryPassword,
+                'loginUrl' => $this->loginUrl(),
             ]);
     }
 
@@ -49,12 +47,12 @@ class UserCreatedResetPasswordNotification extends Notification
     {
         return [
             'email' => $notifiable->email,
-            'reset_url' => $this->resetUrl($notifiable),
+            'login_url' => $this->loginUrl(),
             'created_by' => $this->createdBy?->id,
         ];
     }
 
-    private function resetUrl(object $notifiable): string
+    private function loginUrl(): string
     {
         $frontendUrl = rtrim(
             config('app.frontend_url')
@@ -63,11 +61,6 @@ class UserCreatedResetPasswordNotification extends Notification
             '/'
         );
 
-        $query = http_build_query([
-            'token' => $this->token,
-            'email' => $notifiable->email,
-        ]);
-
-        return URL::to($frontendUrl . '/resetpassword?' . $query);
+        return $frontendUrl . '/login';
     }
 }
