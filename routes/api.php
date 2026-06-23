@@ -17,6 +17,7 @@ use App\Http\Controllers\API\GeologicalRecordController;
 use App\Http\Controllers\API\MetadataSchemaController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\SettingsController;
+use App\Http\Controllers\API\StudyAreaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -204,6 +205,38 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource(
         'projects',
         ProjectController::class
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Study Area Management Routes
+    |--------------------------------------------------------------------------
+    | Study areas store the exact supervisor-required information:
+    | area name, GPS coordinates/location, description, photos, status,
+    | map details, and field information.
+    |
+    | Important:
+    | Summary and custom photo routes must be declared before apiResource.
+    | Otherwise, Laravel may treat "summary" as a study area ID.
+    */
+    Route::get(
+        'study-areas/summary',
+        [StudyAreaController::class, 'summary']
+    )->name('study-areas.summary');
+
+    Route::post(
+        'study-areas/{id}/restore',
+        [StudyAreaController::class, 'restore']
+    )->name('study-areas.restore');
+
+    Route::delete(
+        'study-areas/{studyAreaId}/photos/{photoId}',
+        [StudyAreaController::class, 'deletePhoto']
+    )->name('study-areas.photos.delete');
+
+    Route::apiResource(
+        'study-areas',
+        StudyAreaController::class
     );
 
     /*
