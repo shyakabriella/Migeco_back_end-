@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\API\RegisterController;
@@ -17,6 +16,7 @@ use App\Http\Controllers\API\DocumentAiController;
 use App\Http\Controllers\API\GeologicalRecordController;
 use App\Http\Controllers\API\MetadataSchemaController;
 use App\Http\Controllers\API\RoleController;
+use App\Http\Controllers\API\SettingsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,7 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | Authenticated User
     |--------------------------------------------------------------------------
-    | This keeps the existing endpoint used by the frontend.
+    | These endpoints are used by different frontend pages.
     */
     Route::controller(RegisterController::class)->group(function () {
         Route::get('user', 'me');
@@ -51,7 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Authentication / Profile Routes
+    | Authentication / Profile / User Management Routes
     |--------------------------------------------------------------------------
     */
     Route::controller(RegisterController::class)->group(function () {
@@ -71,6 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | Role Routes
     |--------------------------------------------------------------------------
+    | Main role routes.
     */
     Route::apiResource('roles', RoleController::class);
 
@@ -78,8 +79,13 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | Frontend Compatibility Routes
     |--------------------------------------------------------------------------
-    | Some frontend pages call /admin/users, /admin/roles, and
-    | /user-management/users. These aliases point to the same controllers.
+    | Some frontend pages call:
+    | - /api/admin/users
+    | - /api/admin/roles
+    | - /api/user-management/users
+    |
+    | Important:
+    | The name prefixes prevent duplicate route names during php artisan optimize.
     */
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::controller(RegisterController::class)->group(function () {
@@ -106,6 +112,35 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Settings Routes
+    |--------------------------------------------------------------------------
+    | Supports the Settings page:
+    | - Email notifications
+    | - System notifications
+    | - User profile management
+    | - Change password
+    | - Role and permission management
+    | - Notification preferences
+    | - System configuration
+    */
+    Route::prefix('settings')
+        ->controller(SettingsController::class)
+        ->group(function () {
+            Route::get('/', 'index');
+
+            Route::put('/', 'update');
+            Route::patch('/', 'update');
+
+            Route::put('profile', 'updateProfile');
+            Route::patch('profile', 'updateProfile');
+
+            Route::put('password', 'changePassword');
+
+            Route::post('test-email', 'testEmail');
+        });
 
     /*
     |--------------------------------------------------------------------------
