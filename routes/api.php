@@ -81,7 +81,7 @@ Route::middleware('auth:sanctum')->group(function () {
     | Some frontend pages call /admin/users, /admin/roles, and
     | /user-management/users. These aliases point to the same controllers.
     */
-    Route::prefix('admin')->group(function () {
+    Route::prefix('admin')->name('admin.')->group(function () {
         Route::controller(RegisterController::class)->group(function () {
             Route::get('users', 'users');
             Route::post('users', 'register');
@@ -94,7 +94,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('roles', RoleController::class);
     });
 
-    Route::prefix('user-management')->group(function () {
+    Route::prefix('user-management')->name('user-management.')->group(function () {
         Route::controller(RegisterController::class)->group(function () {
             Route::get('users', 'users');
             Route::post('users', 'register');
@@ -104,7 +104,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('users/{id}', 'deleteUser');
         });
 
-        Route::get('roles', [RoleController::class, 'index']);
+        Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
     });
 
     /*
