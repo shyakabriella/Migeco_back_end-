@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -52,7 +53,6 @@ class SampleRecord extends Model
         'created_by' => 'integer',
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
-        'collected_date' => 'date:Y-m-d',
         'metadata' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -110,32 +110,35 @@ class SampleRecord extends Model
 
     public function getSampleCodeAttribute(): ?string
     {
-        return $this->sample_code;
+        return $this->attributes['sample_code'] ?? null;
     }
 
     public function getSampleNameAttribute(): ?string
     {
-        return $this->sample_name;
+        return $this->attributes['sample_name'] ?? null;
     }
 
     public function getSampleTypeAttribute(): ?string
     {
-        return $this->sample_type;
+        return $this->attributes['sample_type'] ?? null;
     }
 
     public function getCollectedByAttribute(): ?string
     {
-        return $this->collector?->name ?: $this->collected_by;
+        return $this->collector?->name
+            ?: ($this->attributes['collected_by'] ?? null);
     }
 
     public function getCollectedDateAttribute(): ?string
     {
-        return $this->collected_date?->format('Y-m-d');
+        $value = $this->attributes['collected_date'] ?? null;
+
+        return $value ? Carbon::parse($value)->format('Y-m-d') : null;
     }
 
     public function getChainOfCustodyAttribute(): ?string
     {
-        return $this->chain_of_custody;
+        return $this->attributes['chain_of_custody'] ?? null;
     }
 
     public function getResultSummaryAttribute(): ?string
