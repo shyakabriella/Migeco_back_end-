@@ -81,13 +81,6 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | Frontend Compatibility Routes
     |--------------------------------------------------------------------------
-    | Some frontend pages call:
-    | - /api/admin/users
-    | - /api/admin/roles
-    | - /api/user-management/users
-    |
-    | Important:
-    | The name prefixes prevent duplicate route names during php artisan optimize.
     */
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::controller(RegisterController::class)->group(function () {
@@ -119,14 +112,6 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | Settings Routes
     |--------------------------------------------------------------------------
-    | Supports the Settings page:
-    | - Email notifications
-    | - System notifications
-    | - User profile management
-    | - Change password
-    | - Role and permission management
-    | - Notification preferences
-    | - System configuration
     */
     Route::prefix('settings')
         ->controller(SettingsController::class)
@@ -148,7 +133,6 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | Document Category Routes
     |--------------------------------------------------------------------------
-    | Existing category management remains unchanged.
     */
     Route::apiResource(
         'document-categories',
@@ -159,11 +143,6 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | Metadata Schema Routes
     |--------------------------------------------------------------------------
-    | Adds reusable metadata structures for geological records such as:
-    | boreholes, groundwater, rock samples, mineral occurrences and faults.
-    |
-    | Important:
-    | These routes are additive and do not replace document categories.
     */
     Route::apiResource(
         'metadata-schemas',
@@ -174,14 +153,6 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | Project Management Routes
     |--------------------------------------------------------------------------
-    | A project is the main workspace/container.
-    | Each project can return all related records:
-    | documents, archives, study-area files, samples, laboratory records,
-    | geological records, and security alerts.
-    |
-    | Important:
-    | Summary and records routes must be declared before apiResource.
-    | Otherwise, Laravel may treat "summary" or "records" as a project ID.
     */
     Route::get(
         'projects/summary',
@@ -212,13 +183,6 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | Study Area Management Routes
     |--------------------------------------------------------------------------
-    | Study areas store the exact supervisor-required information:
-    | area name, GPS coordinates/location, description, photos, status,
-    | map details, and field information.
-    |
-    | Important:
-    | Summary and custom photo routes must be declared before apiResource.
-    | Otherwise, Laravel may treat "summary" as a study area ID.
     */
     Route::get(
         'study-areas/summary',
@@ -240,26 +204,32 @@ Route::middleware('auth:sanctum')->group(function () {
         StudyAreaController::class
     );
 
-
     /*
     |--------------------------------------------------------------------------
     | Sample Management / Laboratory Results Routes
     |--------------------------------------------------------------------------
     | Supports supervisor requirements:
-    | - Sample code
+    | - System-generated sample code
     | - Collection date
     | - Collector
-    | - Location
-    | - Linked project
+    | - Google Map location
+    | - Latitude and longitude from GPS/location
+    | - Linked project selected from projects table
+    | - System-generated lab reference
     | - Sample information
     | - Test results
     | - Result documents
     |
     | Important:
-    | Summary, restore, update-with-files, result, and document routes must be
-    | declared before apiResource. Otherwise, Laravel may treat route keywords
-    | as sample IDs.
+    | Static routes like projects and summary must be declared before apiResource.
+    | Otherwise, Laravel may treat "projects" or "summary" as sample IDs.
     */
+
+    Route::get(
+        'samples-laboratory/projects',
+        [SampleLaboratoryController::class, 'projects']
+    )->name('samples-laboratory.projects');
+
     Route::get(
         'samples-laboratory/summary',
         [SampleLaboratoryController::class, 'summary']
@@ -328,7 +298,6 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | Document Upload / Metadata Routes
     |--------------------------------------------------------------------------
-    | Existing document upload, listing, update and deletion routes.
     */
     Route::apiResource(
         'documents',
@@ -339,9 +308,6 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | Document Archive Routes
     |--------------------------------------------------------------------------
-    | Archive is a lifecycle state for clean documents that are no longer active.
-    | It keeps the file and database record for audit, but separates old records
-    | from normal daily document work.
     */
     Route::prefix('document-archives')
         ->controller(DocumentArchiveController::class)
@@ -376,11 +342,6 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     | Geological Record Routes
     |--------------------------------------------------------------------------
-    | The summary route must be declared before the API resource route.
-    | Otherwise, Laravel may treat "summary" as a geological record ID.
-    |
-    | Geological records are linked to existing documents and add structured
-    | geological metadata without changing the current document workflow.
     */
     Route::get(
         'geological-records/summary',
