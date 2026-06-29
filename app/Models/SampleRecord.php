@@ -54,6 +54,7 @@ class SampleRecord extends Model
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
         'metadata' => 'array',
+        'collected_date' => 'date:Y-m-d',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -100,7 +101,8 @@ class SampleRecord extends Model
 
     public function latestLaboratoryResult(): HasOne
     {
-        return $this->hasOne(LaboratoryResult::class, 'sample_record_id')->latestOfMany();
+        return $this->hasOne(LaboratoryResult::class, 'sample_record_id')
+            ->latestOfMany();
     }
 
     public function resultDocuments(): HasMany
@@ -125,15 +127,26 @@ class SampleRecord extends Model
 
     public function getCollectedByAttribute(): ?string
     {
-        return $this->collector?->name
-            ?: ($this->attributes['collected_by'] ?? null);
+        if ($this->relationLoaded('collector') && $this->collector) {
+            return $this->collector->name ?? null;
+        }
+
+        return $this->attributes['collected_by'] ?? null;
     }
 
     public function getCollectedDateAttribute(): ?string
     {
         $value = $this->attributes['collected_date'] ?? null;
 
-        return $value ? Carbon::parse($value)->format('Y-m-d') : null;
+        if (!$value) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value)->format('Y-m-d');
+        } catch (\Throwable $exception) {
+            return (string) $value;
+        }
     }
 
     public function getChainOfCustodyAttribute(): ?string
@@ -143,30 +156,50 @@ class SampleRecord extends Model
 
     public function getResultSummaryAttribute(): ?string
     {
+        if (!$this->relationLoaded('latestLaboratoryResult')) {
+            return null;
+        }
+
         return $this->latestLaboratoryResult?->result_summary;
     }
 
     public function getLaboratoryAttribute(): ?string
     {
+        if (!$this->relationLoaded('latestLaboratoryResult')) {
+            return null;
+        }
+
         return $this->latestLaboratoryResult?->laboratory;
     }
 
     public function getTestTypeAttribute(): ?string
     {
+        if (!$this->relationLoaded('latestLaboratoryResult')) {
+            return null;
+        }
+
         return $this->latestLaboratoryResult?->test_type;
     }
 
     public function getLabReferenceAttribute(): ?string
     {
+        if (!$this->relationLoaded('latestLaboratoryResult')) {
+            return null;
+        }
+
         return $this->latestLaboratoryResult?->lab_reference;
     }
 
     public function getResultDocumentsCountAttribute(): int
     {
+        if (array_key_exists('result_documents_count', $this->attributes)) {
+            return (int) $this->attributes['result_documents_count'];
+        }
+
         if ($this->relationLoaded('resultDocuments')) {
             return $this->resultDocuments->count();
         }
 
-        return (int) $this->resultDocuments()->count();
+        return 0;
     }
 }
