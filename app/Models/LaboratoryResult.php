@@ -2,19 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LaboratoryResult extends Model
 {
-    use HasFactory, SoftDeletes;
+    protected $table = 'laboratory_results';
 
     protected $fillable = [
         'sample_record_id',
-        'created_by',
         'laboratory',
         'lab_reference',
         'received_date',
@@ -23,45 +21,36 @@ class LaboratoryResult extends Model
         'tested_by',
         'test_date',
         'result_status',
-        'result_summary',
         'test_results',
+        'result_summary',
         'interpretation',
         'recommendation',
         'notes',
-        'metadata',
     ];
 
     protected $casts = [
         'sample_record_id' => 'integer',
-        'created_by' => 'integer',
         'received_date' => 'date:Y-m-d',
         'test_date' => 'date:Y-m-d',
         'test_results' => 'array',
-        'metadata' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
     ];
 
     protected $appends = [
         'labReference',
+        'receivedDate',
         'testType',
         'testMethod',
         'testedBy',
         'testDate',
         'resultStatus',
         'resultSummary',
-        'resultDocuments',
     ];
 
-    public function sample(): BelongsTo
+    public function sampleRecord(): BelongsTo
     {
         return $this->belongsTo(SampleRecord::class, 'sample_record_id');
-    }
-
-    public function creator(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function documents(): HasMany
@@ -71,45 +60,61 @@ class LaboratoryResult extends Model
 
     public function getLabReferenceAttribute(): ?string
     {
-        return $this->lab_reference;
+        return $this->attributes['lab_reference'] ?? null;
+    }
+
+    public function getReceivedDateAttribute(): ?string
+    {
+        $value = $this->attributes['received_date'] ?? null;
+
+        if (!$value) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value)->format('Y-m-d');
+        } catch (\Throwable $exception) {
+            return (string) $value;
+        }
     }
 
     public function getTestTypeAttribute(): ?string
     {
-        return $this->test_type;
+        return $this->attributes['test_type'] ?? null;
     }
 
     public function getTestMethodAttribute(): ?string
     {
-        return $this->test_method;
+        return $this->attributes['test_method'] ?? null;
     }
 
     public function getTestedByAttribute(): ?string
     {
-        return $this->tested_by;
+        return $this->attributes['tested_by'] ?? null;
     }
 
     public function getTestDateAttribute(): ?string
     {
-        return $this->test_date?->format('Y-m-d');
+        $value = $this->attributes['test_date'] ?? null;
+
+        if (!$value) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value)->format('Y-m-d');
+        } catch (\Throwable $exception) {
+            return (string) $value;
+        }
     }
 
     public function getResultStatusAttribute(): ?string
     {
-        return $this->result_status;
+        return $this->attributes['result_status'] ?? null;
     }
 
     public function getResultSummaryAttribute(): ?string
     {
-        return $this->result_summary;
-    }
-
-    public function getResultDocumentsAttribute()
-    {
-        if ($this->relationLoaded('documents')) {
-            return $this->documents;
-        }
-
-        return $this->documents()->get();
+        return $this->attributes['result_summary'] ?? null;
     }
 }
